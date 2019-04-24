@@ -1,0 +1,8 @@
+{
+  "name": "orbit-optimization",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "repository": "https://github.com/ll929/orbit-optimization.git",
+  "author": "liuleiytu@gmail.com",
+  "license": "MIT"
+}
