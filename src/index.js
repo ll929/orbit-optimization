@@ -54,8 +54,10 @@ const fWrite = fs.createWriteStream(fWriteFilePath)
 const rl = readline.createInterface({
   input: fRead,
 })
-
-const orbitalReg = new RegExp(removeOrbital.toLocaleUpperCase().split(',').join('|'))
+const orbitalReg = new RegExp(
+  removeOrbital.toLocaleUpperCase()
+  .split(',').map(r=> r.replace('+','\\+'))
+  .join('|'))
 let isStart = false
 rl.on('line', line => {
   console.time('used time')
