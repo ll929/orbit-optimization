@@ -56,7 +56,7 @@ const rl = readline.createInterface({
 })
 const orbitalReg = new RegExp(
   removeOrbital.toLocaleUpperCase()
-  .split(',').map(r=> r.replace('+','\\+'))
+  .split(',').map(r=> r.replace('+','\\+').replace('^','\\s'))
   .join('|'))
 let isStart = false
 rl.on('line', line => {
