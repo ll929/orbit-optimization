@@ -16,6 +16,7 @@ const COMMANDER = {
   HELP: '--help',
   VERSION: '--version',
   REMOVE_ORBITAL: '--rmo',
+  REMOVE_ELEMENT_SYMBOL: '--rms',
 }
 
 function findArgv (cmd) {
@@ -34,6 +35,7 @@ if (!removeOrbitalArgv) {
   console.log('\033[41;30m FAIL \033[40;31m --rmo is request \033[0m')
   return
 }
+const removeElementSymbolArgv = findArgv(COMMANDER.REMOVE_ELEMENT_SYMBOL)
 const fReadFilePath = fReadFilePathArgv.replace(`${COMMANDER.INPUT_PATH}=`, '')
 const removeOrbital = removeOrbitalArgv.replace(`${COMMANDER.REMOVE_ORBITAL}=`, '')
 const fWriteDirPathArgv = findArgv(COMMANDER.OUTPUT_DIR_PATH)
@@ -55,17 +57,29 @@ const rl = readline.createInterface({
   input: fRead,
 })
 const orbitalReg = new RegExp(
-  removeOrbital.toLocaleUpperCase()
-  .split(',').map(r=> r.replace('+','\\+').replace('^','\\s'))
-  .join('|'))
+  removeOrbital.toLocaleUpperCase().split(',').map(r => r.replace('+', '\\+').replace('^', '\\s')).join('|'))
+const symbolReg = !!removeElementSymbolArgv
+  ? new RegExp(
+    removeElementSymbolArgv.replace(`${COMMANDER.REMOVE_ELEMENT_SYMBOL}=`, '').toLocaleUpperCase().split(',').join('|'))
+  : new RegExp(/.+/)
 let isStart = false
+let currentSymbol = null
+let isMatchSymbol = !removeElementSymbolArgv
 rl.on('line', line => {
   console.time('used time')
   if (/Molecular Orbital Coefficients/.test(line)) {
     isStart = true
   }
   const isMatching = line.match(orbitalReg)
-  if (!!isMatching && isStart) {
+  const currentLineArr = line.trim().split(/\s+/)
+  const _currentSymbol = currentLineArr[2]
+  if (currentLineArr.length >= 8 && isNaN(_currentSymbol)) {
+    currentSymbol = _currentSymbol.toLocaleUpperCase()
+  }
+  if (currentSymbol && !!removeElementSymbolArgv) {
+    isMatchSymbol = currentSymbol.match(symbolReg)
+  }
+  if (!!isMatching && isStart && isMatchSymbol) {
     const matchKey = isMatching[0]
     const lineArr = line.split(orbitalReg)
     lineArr[1] = lineArr[1].replace(/\d/g, 0).replace(/-/g, ' ')
@@ -76,5 +90,8 @@ rl.on('line', line => {
 })
 rl.on('close', () => {
   console.log('\033[42;30m DONE \033[40;32m removed orbital is ' + removeOrbital + ' \033[0m')
+  if(!!removeElementSymbolArgv){
+    console.log('\033[42;30m DONE \033[40;32m removed element symbol is ' + removeElementSymbolArgv.replace(`${COMMANDER.REMOVE_ELEMENT_SYMBOL}=`, '') + ' \033[0m')
+  }
   console.timeEnd('used time')
 })
